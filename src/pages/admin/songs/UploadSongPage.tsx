@@ -9,6 +9,7 @@ import { FileField } from '@/components/forms/FileField'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useUploadSongMutation } from '@/features/songs/songsApi'
 import { getErrorMessage, getFieldErrors } from '@/utils/errors'
+import { uploadMediaWithChunking } from '@/utils/chunkUpload'
 
 export function UploadSongPage() {
   const [title, setTitle] = useState('')
@@ -16,6 +17,8 @@ export function UploadSongPage() {
   const [releaseDate, setReleaseDate] = useState('')
   const [cover, setCover] = useState<File | null>(null)
   const [audio, setAudio] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isChunkUploading, setIsChunkUploading] = useState(false)
   const [uploadSong, { isLoading, error }] = useUploadSongMutation()
   const fieldErrors = getFieldErrors(error)
   const navigate = useNavigate()
@@ -26,18 +29,26 @@ export function UploadSongPage() {
       toast.error('Cover image and audio file are required.')
       return
     }
+
     const body = new FormData()
     body.append('title', title)
     body.append('artist', artist)
     body.append('releaseDate', releaseDate)
     body.append('cover_image', cover)
-    body.append('audio', audio)
+
     try {
+      setUploadProgress(0)
+      setIsChunkUploading(true)
+      const uploadedAudioUrl = await uploadMediaWithChunking(audio, 'audio', setUploadProgress)
+      body.append('audio', uploadedAudioUrl)
+
       const result = await uploadSong(body).unwrap()
       toast.success(result.message ?? 'Song uploaded')
       navigate('/admin/songs')
     } catch (err) {
       toast.error(getErrorMessage(err))
+    } finally {
+      setIsChunkUploading(false)
     }
   }
 
@@ -101,11 +112,26 @@ export function UploadSongPage() {
             />
           </div>
 
+          {isChunkUploading && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs text-stone-300">
+                <span>Uploading audio...</span>
+                <span>{Math.round(uploadProgress)}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#201b18]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-2 border-t border-[#26201a]">
             <Button type="button" variant="secondary" onClick={() => navigate('/admin/songs')}>
               Cancel
             </Button>
-            <Button type="submit" variant="amber-pill" loading={isLoading} className="gap-2">
+            <Button type="submit" variant="amber-pill" loading={isLoading || isChunkUploading} className="gap-2">
               <Upload className="h-4 w-4" />
               Upload Song
             </Button>

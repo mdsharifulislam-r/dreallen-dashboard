@@ -9,6 +9,7 @@ import { FileField } from '@/components/forms/FileField'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useUploadVideoMutation } from '@/features/videos/videosApi'
 import { getErrorMessage, getFieldErrors } from '@/utils/errors'
+import { uploadMediaWithChunking } from '@/utils/chunkUpload'
 
 export function UploadVideoPage() {
   const [title, setTitle] = useState('')
@@ -16,6 +17,8 @@ export function UploadVideoPage() {
   const [releaseDate, setReleaseDate] = useState('')
   const [cover, setCover] = useState<File | null>(null)
   const [video, setVideo] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isChunkUploading, setIsChunkUploading] = useState(false)
   const [uploadVideo, { isLoading, error }] = useUploadVideoMutation()
   const fieldErrors = getFieldErrors(error)
   const navigate = useNavigate()
@@ -31,13 +34,20 @@ export function UploadVideoPage() {
     body.append('artist', artist)
     body.append('releaseDate', releaseDate)
     body.append('cover_image', cover)
-    body.append('video', video)
+
     try {
+      setUploadProgress(0)
+      setIsChunkUploading(true)
+      const uploadedVideoUrl = await uploadMediaWithChunking(video, 'video', setUploadProgress)
+      body.append('video', uploadedVideoUrl)
+
       const result = await uploadVideo(body).unwrap()
       toast.success(result.message ?? 'Video uploaded')
       navigate('/admin/videos')
     } catch (err) {
       toast.error(getErrorMessage(err))
+    } finally {
+      setIsChunkUploading(false)
     }
   }
 
@@ -101,11 +111,26 @@ export function UploadVideoPage() {
             />
           </div>
 
+          {isChunkUploading && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs text-stone-300">
+                <span>Uploading video...</span>
+                <span>{Math.round(uploadProgress)}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#201b18]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-2 border-t border-[#26201a]">
             <Button type="button" variant="secondary" onClick={() => navigate('/admin/videos')}>
               Cancel
             </Button>
-            <Button type="submit" variant="amber-pill" loading={isLoading} className="gap-2">
+            <Button type="submit" variant="amber-pill" loading={isLoading || isChunkUploading} className="gap-2">
               <Upload className="h-4 w-4" />
               Upload Video
             </Button>

@@ -12,6 +12,7 @@ import {
   useUpdateBtsMutation,
 } from "@/features/bts/btsApi";
 import { getErrorMessage, getFieldErrors } from "@/utils/errors";
+import { uploadMediaWithChunking } from "@/utils/chunkUpload";
 
 export function BtsFormPage() {
   const { id } = useParams();
@@ -25,6 +26,8 @@ export function BtsFormPage() {
   const [description, setDescription] = useState("");
   const [video, setVideo] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isChunkUploading, setIsChunkUploading] = useState(false);
   const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<
     string | null
   >(null);
@@ -48,13 +51,23 @@ export function BtsFormPage() {
     const body = new FormData();
     body.append("title", title);
     body.append("description", description);
-    if (video) body.append("video", video);
-    if (thumbnail) {
-      body.append("image", thumbnail);
-      body.append("image", thumbnail);
-    }
 
     try {
+      if (video) {
+        setUploadProgress(0);
+        setIsChunkUploading(true);
+        const uploadedVideoUrl = await uploadMediaWithChunking(
+          video,
+          "video",
+          setUploadProgress,
+        );
+        body.append("video", uploadedVideoUrl);
+      }
+
+      if (thumbnail) {
+        body.append("image", thumbnail);
+      }
+
       if (isEdit && id) {
         const result = await updateBts({ id, body }).unwrap();
         toast.success(result.message ?? "BTS updated successfully");
@@ -69,6 +82,8 @@ export function BtsFormPage() {
       navigate("/admin/bts");
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setIsChunkUploading(false);
     }
   };
 
@@ -153,6 +168,21 @@ export function BtsFormPage() {
             )}
           </div>
 
+          {isChunkUploading && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs text-stone-300">
+                <span>Uploading video...</span>
+                <span>{Math.round(uploadProgress)}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#201b18]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2 border-t border-[#26201a]">
             <Button
               type="button"
@@ -163,7 +193,7 @@ export function BtsFormPage() {
             </Button>
             <Button
               type="submit"
-              loading={createState.isLoading || updateState.isLoading}
+              loading={createState.isLoading || updateState.isLoading || isChunkUploading}
             >
               {isEdit ? "Save Changes" : "Upload & Create BTS"}
             </Button>
