@@ -22,6 +22,10 @@ export const songsApi = baseApi.injectEndpoints({
             ]
           : [{ type: 'SongList' as const, id: 'LIST' }],
     }),
+    getSongById: builder.query<ApiSuccess<Song>, string>({
+      query: (id) => `/songs/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'Song', id }],
+    }),
     uploadSong: builder.mutation<ApiSuccess<Song>, FormData>({
       query: (body) => ({
         url: '/songs',
@@ -30,7 +34,34 @@ export const songsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'SongList', id: 'LIST' }],
     }),
+    updateSong: builder.mutation<ApiSuccess<Song>, { id: string; body: FormData }>({
+      query: ({ id, body }) => ({
+        url: `/songs/${id}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Song', id },
+        { type: 'SongList', id: 'LIST' },
+      ],
+    }),
+    deleteSong: builder.mutation<ApiSuccess<unknown>, string>({
+      query: (id) => ({
+        url: `/songs/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Song', id },
+        { type: 'SongList', id: 'LIST' },
+      ],
+    }),
   }),
 })
 
-export const { useGetSongsQuery, useUploadSongMutation } = songsApi
+export const {
+  useGetSongsQuery,
+  useGetSongByIdQuery,
+  useUploadSongMutation,
+  useUpdateSongMutation,
+  useDeleteSongMutation,
+} = songsApi

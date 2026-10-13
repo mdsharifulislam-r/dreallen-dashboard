@@ -12,6 +12,7 @@ import { UsersPage } from '@/pages/admin/users/UsersPage'
 import { SongsPage } from '@/pages/admin/songs/SongsPage'
 import { UploadSongPage } from '@/pages/admin/songs/UploadSongPage'
 import { SongReviewsPage } from '@/pages/admin/songs/SongReviewsPage'
+import { SongDetailPage } from '@/pages/admin/songs/SongDetailPage'
 import { VideosPage } from '@/pages/admin/videos/VideosPage'
 import { UploadVideoPage } from '@/pages/admin/videos/UploadVideoPage'
 import { VideoDetailPage } from '@/pages/admin/videos/VideoDetailPage'
@@ -57,6 +58,8 @@ export const router = createBrowserRouter([
           { path: 'songs', element: <SongsPage /> },
           { path: 'songs/upload', element: <UploadSongPage /> },
           { path: 'songs/:id/reviews', element: <SongReviewsPage /> },
+          { path: 'songs/:id/edit', element: <UploadSongPage /> },
+          { path: 'songs/:id', element: <SongDetailPage /> },
           { path: 'videos', element: <VideosPage /> },
           { path: 'videos/upload', element: <UploadVideoPage /> },
           { path: 'videos/:id', element: <VideoDetailPage /> },

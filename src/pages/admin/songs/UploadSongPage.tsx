@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Music, Upload, Image as ImageIcon } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
@@ -7,11 +7,19 @@ import { Button } from '@/components/ui/Button'
 import { FormField } from '@/components/forms/FormField'
 import { FileField } from '@/components/forms/FileField'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { useUploadSongMutation } from '@/features/songs/songsApi'
+import {
+  useGetSongByIdQuery,
+  useUpdateSongMutation,
+  useUploadSongMutation,
+} from '@/features/songs/songsApi'
 import { getErrorMessage, getFieldErrors } from '@/utils/errors'
 import { uploadMediaWithChunking } from '@/utils/chunkUpload'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { resolveMediaUrl } from '@/utils/mediaUrl'
 
 export function UploadSongPage() {
+  const { id } = useParams()
+  const isEdit = Boolean(id)
   const [title, setTitle] = useState('')
   const [artist, setArtist] = useState('')
   const [releaseDate, setReleaseDate] = useState('')
@@ -20,12 +28,22 @@ export function UploadSongPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isChunkUploading, setIsChunkUploading] = useState(false)
   const [uploadSong, { isLoading, error }] = useUploadSongMutation()
-  const fieldErrors = getFieldErrors(error)
+  const [updateSong, updateState] = useUpdateSongMutation()
+  const existing = useGetSongByIdQuery(id ?? '', { skip: !id })
+  const fieldErrors = getFieldErrors(error ?? updateState.error)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (existing.data?.data) {
+      setTitle(existing.data.data.title)
+      setArtist(existing.data.data.artist)
+      setReleaseDate(existing.data.data.releaseDate?.slice(0, 10) ?? '')
+    }
+  }, [existing.data])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!cover || !audio) {
+    if (!isEdit && (!cover || !audio)) {
       toast.error('Cover image and audio file are required.')
       return
     }
@@ -34,16 +52,23 @@ export function UploadSongPage() {
     body.append('title', title)
     body.append('artist', artist)
     body.append('releaseDate', releaseDate)
-    body.append('cover_image', cover)
+    if (cover) body.append('cover_image', cover)
 
     try {
-      setUploadProgress(0)
-      setIsChunkUploading(true)
-      const uploadedAudioUrl = await uploadMediaWithChunking(audio, 'audio', setUploadProgress)
-      body.append('audio', uploadedAudioUrl)
+      if (audio) {
+        setUploadProgress(0)
+        setIsChunkUploading(true)
+        const uploadedAudioUrl = await uploadMediaWithChunking(audio, 'audio', setUploadProgress)
+        body.append('audio', uploadedAudioUrl)
+      }
 
-      const result = await uploadSong(body).unwrap()
-      toast.success(result.message ?? 'Song uploaded')
+      if (isEdit && id) {
+        const result = await updateSong({ id, body }).unwrap()
+        toast.success(result.message ?? 'Song updated')
+      } else {
+        const result = await uploadSong(body).unwrap()
+        toast.success(result.message ?? 'Song uploaded')
+      }
       navigate('/admin/songs')
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -52,11 +77,19 @@ export function UploadSongPage() {
     }
   }
 
+  if (isEdit && existing.isError) {
+    return <ErrorState message={getErrorMessage(existing.error)} onRetry={() => void existing.refetch()} />
+  }
+
+  if (isEdit && (existing.isLoading || !existing.data?.data)) {
+    return <div className="h-64 animate-pulse rounded-2xl bg-white" />
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Upload Song"
-        description="Add a new track to the music catalog. Supports MP3, WAV, AAC formats."
+        title={isEdit ? 'Edit Song' : 'Upload Song'}
+        description={isEdit ? 'Update track details or replace its media files.' : 'Add a new track to the music catalog. Supports MP3, WAV, AAC formats.'}
       />
       <Card className="bg-[#161310] max-w-2xl p-6">
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -97,17 +130,20 @@ export function UploadSongPage() {
             <FileField
               label="Cover Image"
               accept="image/*"
-              required
+              required={!isEdit}
               onChange={setCover}
               error={fieldErrors.cover_image}
+              preview={cover ? undefined : resolveMediaUrl(existing.data?.data.cover_image)}
+              hint={isEdit ? 'Leave empty to keep the current cover image.' : undefined}
               icon={<ImageIcon className="h-5 w-5 text-stone-400" />}
             />
             <FileField
               label="Audio File"
               accept="audio/*"
-              required
+              required={!isEdit}
               onChange={setAudio}
               error={fieldErrors.audio}
+              hint={isEdit ? 'Leave empty to keep the current audio file.' : undefined}
               icon={<Music className="h-5 w-5 text-stone-400" />}
             />
           </div>
@@ -131,9 +167,9 @@ export function UploadSongPage() {
             <Button type="button" variant="secondary" onClick={() => navigate('/admin/songs')}>
               Cancel
             </Button>
-            <Button type="submit" variant="amber-pill" loading={isLoading || isChunkUploading} className="gap-2">
+            <Button type="submit" variant="amber-pill" loading={isLoading || updateState.isLoading || isChunkUploading} className="gap-2">
               <Upload className="h-4 w-4" />
-              Upload Song
+              {isEdit ? 'Save Changes' : 'Upload Song'}
             </Button>
           </div>
         </form>

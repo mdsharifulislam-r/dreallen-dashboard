@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { Eye, Pencil, Star, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -10,7 +11,8 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/search/SearchInput'
 import { Pagination } from '@/components/pagination/Pagination'
 import { DataTable } from '@/components/table/DataTable'
-import { useGetSongsQuery } from '@/features/songs/songsApi'
+import { ConfirmDialog } from '@/components/modal/ConfirmDialog'
+import { useDeleteSongMutation, useGetSongsQuery } from '@/features/songs/songsApi'
 import type { Song } from '@/features/songs/types'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { unwrapList } from '@/utils/list'
@@ -24,7 +26,9 @@ export function SongsPage() {
   const [limit, setLimit] = useState(10)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortableListQuery['sort']>('latest')
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const searchTerm = useDebouncedValue(search)
+  const [deleteSong, { isLoading: isDeleting }] = useDeleteSongMutation()
 
   useEffect(() => {
     setPage(1)
@@ -37,6 +41,17 @@ export function SongsPage() {
     searchTerm: searchTerm || undefined,
   })
   const { items, pagination } = unwrapList<Song>(data)
+
+  const handleDelete = async () => {
+    if (!pendingDeleteId) return
+    try {
+      await deleteSong(pendingDeleteId).unwrap()
+      toast.success('Song deleted successfully')
+      setPendingDeleteId(null)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -105,11 +120,34 @@ export function SongsPage() {
                 key: 'actions',
                 header: 'Actions',
                 render: (song) => (
-                  <Link to={`/admin/songs/${song._id}/reviews`}>
-                    <Button variant="secondary" size="sm" className="hover:border-amber-500/50 hover:text-amber-400">
-                      Reviews
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link to={`/admin/songs/${song._id}`}>
+                      <Button variant="secondary" size="sm" className="gap-1.5">
+                        <Eye className="h-3.5 w-3.5" />
+                        View
+                      </Button>
+                    </Link>
+                    <Link to={`/admin/songs/${song._id}/edit`}>
+                      <Button variant="secondary" size="sm" className="gap-1.5">
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Link to={`/admin/songs/${song._id}/reviews`}>
+                      <Button variant="secondary" size="sm" className="hover:border-amber-500/50 hover:text-amber-400">
+                        Reviews
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setPendingDeleteId(song._id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
                     </Button>
-                  </Link>
+                  </div>
                 ),
               },
             ]}
@@ -130,6 +168,15 @@ export function SongsPage() {
           }}
         />
       </Card>
+      <ConfirmDialog
+        open={Boolean(pendingDeleteId)}
+        title="Delete song"
+        description="This will permanently remove the song from the catalog. This action cannot be undone."
+        confirmLabel="Delete Song"
+        loading={isDeleting}
+        onConfirm={() => void handleDelete()}
+        onClose={() => setPendingDeleteId(null)}
+      />
     </div>
   )
 }
