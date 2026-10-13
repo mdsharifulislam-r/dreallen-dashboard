@@ -29,6 +29,10 @@ const normalizeUploadedUrl = (value: string) => {
     return undefined
   }
 
+  if(trimmed.startsWith("http")){
+    return trimmed
+  }
+
   if (trimmed.startsWith('/')) {
     return trimmed
   }

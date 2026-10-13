@@ -39,12 +39,15 @@ export function UploadVideoPage() {
       setUploadProgress(0)
       setIsChunkUploading(true)
       const uploadedVideoUrl = await uploadMediaWithChunking(video, 'video', setUploadProgress)
+      console.log(uploadedVideoUrl)
       body.append('video', uploadedVideoUrl)
 
       const result = await uploadVideo(body).unwrap()
+      console.log(result)
       toast.success(result.message ?? 'Video uploaded')
       navigate('/admin/videos')
     } catch (err) {
+      console.log(err)
       toast.error(getErrorMessage(err))
     } finally {
       setIsChunkUploading(false)
@@ -57,9 +60,9 @@ export function UploadVideoPage() {
         title="Upload Video"
         description="Add a new video to the showcase gallery. Supports MP4, MOV, WebM formats."
       />
-      <Card className="bg-[#161310] max-w-2xl p-6">
+      <Card className="bg-panel max-w-2xl p-6">
         <form className="space-y-5" onSubmit={handleSubmit}>
-          <p className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-[#26201a] pb-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-line pb-2">
             Video Info
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -89,7 +92,7 @@ export function UploadVideoPage() {
             error={fieldErrors.releaseDate}
           />
 
-          <p className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-[#26201a] pb-2 pt-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-line pb-2 pt-2">
             Media Files
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -119,7 +122,7 @@ export function UploadVideoPage() {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-[#201b18]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-200"
+                  className="h-full rounded-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-200"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>

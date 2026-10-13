@@ -97,7 +97,7 @@ export function BtsFormPage() {
             : "Upload a new Behind-The-Scenes video and cover thumbnail."
         }
       />
-      <Card className="max-w-2xl p-6 bg-[#161310]">
+      <Card className="max-w-2xl p-6 bg-panel">
         <form className="space-y-5" onSubmit={handleSubmit}>
           <FormField
             label="Title"
@@ -176,14 +176,14 @@ export function BtsFormPage() {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-[#201b18]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-200"
+                  className="h-full rounded-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-200"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#26201a]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-line">
             <Button
               type="button"
               variant="secondary"
