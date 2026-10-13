@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import {useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Music, Upload, Image as ImageIcon } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
