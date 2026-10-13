@@ -49,7 +49,15 @@ export function BtsDetailPage() {
         }
       />
       <Card className="overflow-hidden">
-        {item.video ? <video controls className="w-full bg-black" src={resolveMediaUrl(item.video)} /> : null}
+        {item.video ? (
+          <div className="aspect-video w-full bg-black">
+            <video
+              controls
+              className="h-full w-full object-contain"
+              src={resolveMediaUrl(item.video)}
+            />
+          </div>
+        ) : null}
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <p className="text-sm text-muted">
             Author: <span className="font-semibold text-ink">{item.author?.name ?? '—'}</span>
