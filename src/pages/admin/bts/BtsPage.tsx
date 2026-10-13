@@ -240,105 +240,106 @@ export function BtsPage() {
         />
       ) : viewMode === "grid" ? (
         /* Video Card Grid View matching Image 2 */
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredItems.map((item) => (
-            <Card
-              key={item._id}
-              className="flex flex-col justify-between overflow-hidden bg-[#161310] border-[#26201a] hover:border-amber-500/30 transition-all duration-300 group shadow-xl"
-            >
-              <div>
-                {/* Thumbnail Image Container */}
-                <div className="relative aspect-video w-full overflow-hidden bg-stone-900">
-                  <img
-                    src={getImageUrl(item.thumbnail)}
-                    alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        // <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        //   {filteredItems.map((item) => (
+        //     <Card
+        //       key={item._id}
+        //       className="flex flex-col justify-between overflow-hidden bg-[#161310] border-[#26201a] hover:border-amber-500/30 transition-all duration-300 group shadow-xl"
+        //     >
+        //       <div>
+        //         {/* Thumbnail Image Container */}
+        //         <div className="relative aspect-video w-full overflow-hidden bg-stone-900">
+        //           <img
+        //             src={getImageUrl(item.thumbnail)}
+        //             alt={item.title}
+        //             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        //           />
+        //           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                  {/* Top Overlay Badges */}
-                  <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
-                    {item.isFeatured ? (
-                      <span className="rounded-full bg-amber-500/20 border border-amber-500/50 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-400 shadow-sm backdrop-blur-md">
-                        FEATURED
-                      </span>
-                    ) : null}
-                  </div>
+        //           {/* Top Overlay Badges */}
+        //           <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
+        //             {item.isFeatured ? (
+        //               <span className="rounded-full bg-amber-500/20 border border-amber-500/50 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-400 shadow-sm backdrop-blur-md">
+        //                 FEATURED
+        //               </span>
+        //             ) : null}
+        //           </div>
 
-                  <div className="absolute bottom-3 left-3">
-                    {item.isPublished ? (
-                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 backdrop-blur-md">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-stone-800/80 border border-stone-700/60 px-2.5 py-0.5 text-xs font-semibold text-stone-400 backdrop-blur-md">
-                        Draft
-                      </span>
-                    )}
-                  </div>
+        //           <div className="absolute bottom-3 left-3">
+        //             {item.isPublished ? (
+        //               <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 backdrop-blur-md">
+        //                 Published
+        //               </span>
+        //             ) : (
+        //               <span className="rounded-full bg-stone-800/80 border border-stone-700/60 px-2.5 py-0.5 text-xs font-semibold text-stone-400 backdrop-blur-md">
+        //                 Draft
+        //               </span>
+        //             )}
+        //           </div>
 
-                  {/* Duration Overlay Badge */}
-                  <span className="absolute bottom-3 right-3 rounded bg-black/80 backdrop-blur px-2 py-0.5 text-xs font-mono text-stone-200">
-                    {item.duration}
-                  </span>
-                </div>
+        //           {/* Duration Overlay Badge */}
+        //           <span className="absolute bottom-3 right-3 rounded bg-black/80 backdrop-blur px-2 py-0.5 text-xs font-mono text-stone-200">
+        //             {item.duration}
+        //           </span>
+        //         </div>
 
-                {/* Card Content Body */}
-                <div className="p-4 space-y-2">
-                  <h3 className="font-bold text-base text-white hover:text-amber-400 transition-colors line-clamp-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
-                    {item.description}
-                  </p>
+        //         {/* Card Content Body */}
+        //         <div className="p-4 space-y-2">
+        //           <h3 className="font-bold text-base text-white hover:text-amber-400 transition-colors line-clamp-1">
+        //             {item.title}
+        //           </h3>
+        //           <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
+        //             {item.description}
+        //           </p>
 
-                  <div className="flex items-center gap-3 pt-2 text-xs font-medium text-stone-400">
-                    <span className="flex items-center gap-1 font-bold text-amber-400">
-                      <Eye className="h-3.5 w-3.5" />
-                      {item.views}
-                    </span>
-                    <span>•</span>
-                    <span>Uploaded {item.uploadedAt}</span>
-                  </div>
-                </div>
-              </div>
+        //           <div className="flex items-center gap-3 pt-2 text-xs font-medium text-stone-400">
+        //             <span className="flex items-center gap-1 font-bold text-amber-400">
+        //               <Eye className="h-3.5 w-3.5" />
+        //               {item.views}
+        //             </span>
+        //             <span>•</span>
+        //             <span>Uploaded {item.uploadedAt}</span>
+        //           </div>
+        //         </div>
+        //       </div>
 
-              {/* Card Footer Actions matching Image 2 */}
-              <div className="flex items-center justify-between gap-2 border-t border-[#231d18] bg-[#120f0d] px-4 py-3">
-                <ToggleSwitch
-                  label="Featured"
-                  checked={item.isFeatured}
-                  onChange={() => toggleFeaturedState(item._id)}
-                />
+        //       {/* Card Footer Actions matching Image 2 */}
+        //       <div className="flex items-center justify-between gap-2 border-t border-[#231d18] bg-[#120f0d] px-4 py-3">
+        //         <ToggleSwitch
+        //           label="Featured"
+        //           checked={item.isFeatured}
+        //           onChange={() => toggleFeaturedState(item._id)}
+        //         />
 
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => togglePublishState(item._id)}
-                    className="rounded-lg border border-[#382d24] bg-[#221b16] px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-[#2b221c] hover:text-white transition"
-                  >
-                    {item.isPublished ? "Unpublish" : "Publish"}
-                  </button>
-                  <Link to={`/admin/bts/${item._id}/edit`}>
-                    <button
-                      type="button"
-                      className="rounded-lg border border-[#382d24] bg-[#221b16] px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-[#2b221c] hover:text-white transition"
-                    >
-                      Edit
-                    </button>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setPendingId(item._id)}
-                    className="rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-900/50 hover:text-red-300 transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        //         <div className="flex items-center gap-1.5">
+        //           <button
+        //             type="button"
+        //             onClick={() => togglePublishState(item._id)}
+        //             className="rounded-lg border border-[#382d24] bg-[#221b16] px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-[#2b221c] hover:text-white transition"
+        //           >
+        //             {item.isPublished ? "Unpublish" : "Publish"}
+        //           </button>
+        //           <Link to={`/admin/bts/${item._id}/edit`}>
+        //             <button
+        //               type="button"
+        //               className="rounded-lg border border-[#382d24] bg-[#221b16] px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-[#2b221c] hover:text-white transition"
+        //             >
+        //               Edit
+        //             </button>
+        //           </Link>
+        //           <button
+        //             type="button"
+        //             onClick={() => setPendingId(item._id)}
+        //             className="rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-900/50 hover:text-red-300 transition"
+        //           >
+        //             Delete
+        //           </button>
+        //         </div>
+        //       </div>
+        //     </Card>
+        //   ))}
+        // </div>
+        <div></div>
       ) : (
         /* Data Table View Fallback */
         <Card className="bg-[#161310]">
